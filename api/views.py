@@ -1,3 +1,4 @@
+from django.shortcuts import render
 from django.db.models import Sum
 from django.db import transaction
 from rest_framework import generics, status
@@ -10,6 +11,9 @@ from .serializers import (
     StockTransactionSerializer,
     StockLevelSerializer
 )
+
+def home_view(request):
+    return render(request, 'home.html')
 
 # --- Product Views ---
 class ProductListCreateView(generics.ListCreateAPIView):
