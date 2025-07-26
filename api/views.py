@@ -5,7 +5,7 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from .models import ProductMast, StckMalin, StckDetail
+from .models import ProductMast, StckMain, StckDetail
 from .serializers import (
     ProductSerializer,
     StockTransactionSerializer,
@@ -62,7 +62,7 @@ class StockTransactionView(APIView):
         try:
             # This is the key: wrap all database operations in transaction.atomic()
             with transaction.atomic():
-                malin_record = StckMalin.objects.create(transaction_type=self.transaction_type)
+                malin_record = StckMain.objects.create(transaction_type=self.transaction_type)
                 
                 for item in items:
                     gtin = item['product_gtin']

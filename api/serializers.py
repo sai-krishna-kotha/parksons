@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ProductMast, StckMalin, StckDetail
+from .models import ProductMast, StckMain, StckDetail
 from rest_framework.validators import UniqueValidator
 
 # For reading/creating products
