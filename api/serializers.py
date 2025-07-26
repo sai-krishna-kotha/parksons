@@ -1,8 +1,17 @@
 from rest_framework import serializers
 from .models import ProductMast, StckMalin, StckDetail
+from rest_framework.validators import UniqueValidator
 
 # For reading/creating products
 class ProductSerializer(serializers.ModelSerializer):
+    # This validator ensures the GTIN is unique across all ProductMast instances.
+    gtin = serializers.CharField(
+        max_length=14,
+        validators=[UniqueValidator(
+            queryset=ProductMast.objects.all(),
+            message="A product with this GTIN already exists."
+        )]
+    )
     class Meta:
         model = ProductMast
         fields = ['id', 'gtin', 'product_name', 'description']

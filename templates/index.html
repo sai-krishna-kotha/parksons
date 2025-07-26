@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Tracker</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+            max-width: 800px; 
+            margin: auto; 
+            padding: 20px; 
+            color: #333; 
+        }
+        h1, h3 { 
+            color: #111; 
+        }
+        form { 
+            border: 1px solid #ddd; 
+            padding: 20px; 
+            margin-bottom: 25px; 
+            border-radius: 8px; 
+            background-color: #f9f9f9; 
+        }
+        input, textarea, button { 
+            display: block; 
+            width: 95%; 
+            padding: 10px; 
+            margin-bottom: 10px; 
+            border-radius: 4px; 
+            border: 1px solid #ccc; 
+            font-size: 16px; 
+            font-family: inherit; 
+        }
+        textarea { 
+            resize: vertical; 
+        }
+        button { 
+            background-color: #007bff; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            font-weight: bold; 
+        }
+        button:hover { 
+            background-color: #0056b3; 
+        }
+        
+        /* Styles for the sticky header container */
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            background-color: white; 
+            padding-top: 10px;
+            padding-bottom: 10px; 
+            z-index: 10; 
+            border-bottom: 2px solid #7e7e7eff; 
+        }
+
+        /* NEW: Flex container for the top row (h1 and button) */
+        .header-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Adjusting h1 margin for the new layout */
+        .header-top-row h1 {
+            margin: 0;
+        }
+
+        #result { 
+            background: #e9ecef; 
+            padding: 15px; 
+            margin-top: 15px; /* Added margin-top for space */
+            border-radius: 5px; 
+            font-weight: 500; 
+            min-height: 24px; 
+            word-wrap: break-word; 
+        }
+        .docs-link { 
+            display: inline-block; 
+            margin-bottom: 0; /* Removed margin as it's now flex-aligned */
+            padding: 8px 15px; 
+            background-color: #6c757d; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 4px; 
+            font-size: 0.9em; 
+            transition: background-color 0.2s; 
+        }
+        .docs-link:hover { 
+            background-color: #5a6268; 
+        }
+        .form-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 20px; 
+        }
+        @media (max-width: 600px) { 
+            .form-grid { grid-template-columns: 1fr; } 
+        }
+    </style>
+</head>
+<body>
+    <div class="sticky-header">
+        <div class="header-top-row">
+            <h1>Stock Management</h1>
+            <a href="/api/docs/" class="docs-link">View API Documentation</a>
+        </div>
+        <div id="result">API responses will appear here.</div>
+    </div>
+    <br>
+    
+    <form id="stock-level-form">
+        <h3>Check Stock Level</h3>
+        <input type="text" id="gtin-check" placeholder="Enter Product GTIN" required>
+        <button type="submit">Check Stock</button>
+    </form>
+
+    <div class="form-grid">
+        <form id="stock-in-form">
+            <h3>Record Stock In</h3>
+            <input type="text" id="gtin-in" placeholder="Product GTIN" required>
+            <input type="number" id="qty-in" placeholder="Quantity" min="1" required>
+            <button type="submit">Stock In</button>
+        </form>
+
+        <form id="stock-out-form">
+            <h3>Record Stock Out</h3>
+            <input type="text" id="gtin-out" placeholder="Product GTIN" required>
+            <input type="number" id="qty-out" placeholder="Quantity" min="1" required>
+            <button type="submit">Stock Out</button>
+        </form>
+    </div>
+
+    <form id="create-product-form">
+        <h3>Create New Product</h3>
+        <input type="text" id="gtin-create" placeholder="Product GTIN" required>
+        <input type="text" id="name-create" placeholder="Product Name" required>
+        <textarea id="desc-create" placeholder="Description (Optional)"></textarea>
+        <button type="submit">Create Product</button>
+    </form>
+    <script>
+        const resultDiv = document.getElementById('result');
+
+        // Helper function to display results
+        function showResult(message, isError) {
+            resultDiv.innerText = message;
+            if (isError) {
+                resultDiv.style.color = '#721c24';
+                resultDiv.style.backgroundColor = '#f8d7da';
+            } else {
+                resultDiv.style.color = '#155724';
+                resultDiv.style.backgroundColor = '#d4edda';
+            }
+        }
+
+        // --- Event Listeners ---
+
+        // CREATE PRODUCT
+        document.getElementById('create-product-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const gtin = document.getElementById('gtin-create').value;
+            const product_name = document.getElementById('name-create').value;
+            const description = document.getElementById('desc-create').value;
+
+            showResult('Creating product...', false);
+            try {
+                const response = await fetch('/api/products/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ gtin, product_name, description })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showResult(`✅ Product '${data.product_name}' created successfully!`, false);
+                } else {
+                    // Handles validation errors like non-unique GTIN
+                    showResult(`❌ Error: ${JSON.stringify(data)}`, true);
+                }
+            } catch (error) {
+                showResult('Network or server error.', true);
+            }
+        });
+
+        // STOCK IN
+        document.getElementById('stock-in-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const gtin = document.getElementById('gtin-in').value;
+            const quantity = parseInt(document.getElementById('qty-in').value);
+
+            showResult('Processing stock-in...', false);
+            try {
+                const response = await fetch('/api/stock/in/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ items: [{ product_gtin: gtin, quantity }] })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showResult(`✅ Transaction ${data.transaction_id} successful.`, false);
+                } else {
+                    showResult(`❌ Error: ${data.error || JSON.stringify(data)}`, true);
+                }
+            } catch (error) {
+                showResult('Network or server error.', true);
+            }
+        });
+        
+        // STOCK OUT
+        document.getElementById('stock-out-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const gtin = document.getElementById('gtin-out').value;
+            const quantity = parseInt(document.getElementById('qty-out').value);
+
+            showResult('Processing stock-out...', false);
+            try {
+                const response = await fetch('/api/stock/out/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ items: [{ product_gtin: gtin, quantity }] })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showResult(`✅ Transaction ${data.transaction_id} successful.`, false);
+                } else {
+                    showResult(`❌ Error: ${data.error || JSON.stringify(data)}`, true);
+                }
+            } catch (error) {
+                showResult('Network or server error.', true);
+            }
+        });
+
+        // GET STOCK LEVEL (existing function)
+        document.getElementById('stock-level-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const gtin = document.getElementById('gtin-check').value;
+            showResult('Checking...', false);
+            try {
+                const response = await fetch(`/api/stock/level/${gtin}/`);
+                const data = await response.json();
+                if (response.ok) {
+                    showResult(`✅ Stock for '${data.product_name}': ${data.quantity}`, false);
+                } else {
+                    showResult(`❌ Error: ${data.error || 'Unknown error'}`, true);
+                }
+            } catch (error) {
+                showResult('Network or server error.', true);
+            }
+        });
+    </script>
+</body>
+</html>

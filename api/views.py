@@ -12,8 +12,16 @@ from .serializers import (
     StockLevelSerializer
 )
 
-def home_view(request):
-    return render(request, 'home.html')
+def index_view(request):
+    """Serves the main HTML page."""
+    return render(request, 'index.html')
+
+def documentation_view(request):
+    """Serves the API documentation page."""
+    return render(request, 'documentation.html')
+
+def health_view(request):
+    return render(request, 'health.html')
 
 # --- Product Views ---
 class ProductListCreateView(generics.ListCreateAPIView):
@@ -52,21 +60,25 @@ class StockTransactionView(APIView):
         items = serializer.validated_data['items']
         
         try:
-            with transaction.atomic(): # Ensures the whole transaction succeeds or fails
+            # This is the key: wrap all database operations in transaction.atomic()
+            with transaction.atomic():
                 malin_record = StckMalin.objects.create(transaction_type=self.transaction_type)
                 
                 for item in items:
                     gtin = item['product_gtin']
                     quantity = item['quantity']
                     
-                    product = ProductMast.objects.filter(gtin=gtin).first()
+                    # Using select_for_update() locks the row to prevent race conditions
+                    product = ProductMast.objects.select_for_update().filter(gtin=gtin).first()
                     if not product:
+                        # Raising an exception inside the atomic block triggers a rollback
                         raise ValueError(f"Product with GTIN {gtin} not found.")
 
                     if self.transaction_type == 'OUT':
                         current_stock = get_product_stock(gtin)
                         if current_stock < quantity:
-                            raise ValueError(f"Not enough stock for GTIN {gtin}. Available: {current_stock}, Requested: {quantity}")
+                            # More descriptive error message!
+                            raise ValueError(f"Not enough stock for '{product.product_name}' (GTIN: {gtin}). Available: {current_stock}, Requested: {quantity}")
                     
                     StckDetail.objects.create(
                         transaction=malin_record,
@@ -77,7 +89,9 @@ class StockTransactionView(APIView):
             return Response({"message": "Transaction successful", "transaction_id": malin_record.id}, status=status.HTTP_201_CREATED)
         
         except ValueError as e:
+            # The custom, user-friendly error message will be returned
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class StockInView(StockTransactionView):
     """ Handle Stock IN. POST: /api/stock/in/ """

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation - Stock Tracker</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #fdfdfd;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        header {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1, h2, h3 {
+            color: #111;
+            font-weight: 600;
+        }
+        h1 { font-size: 2.5em; }
+        h2 { font-size: 2em; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 40px; }
+        h3 { font-size: 1.5em; }
+        code {
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #ffffffff;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .endpoint {
+            background-color: #fff;
+            border: 1px solid #e5e5e5;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .method {
+            padding: 5px 10px;
+            border-radius: 4px;
+            color: #fff;
+            font-weight: bold;
+            display: inline-block;
+            margin-right: 15px;
+            font-size: 0.9em;
+        }
+        .get { background-color: #28a745; }
+        .post { background-color: #007bff; }
+        .path { font-size: 1.2em; font-weight: 600; }
+        /* Style for activated links */
+        .path a {
+            color: inherit;
+            text-decoration: none;
+        }
+        .path a:hover {
+            text-decoration: underline;
+        }
+        /* Style for the new Home link */
+        .nav-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 15px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.9em;
+            transition: background-color 0.2s;
+        }
+        .nav-link:hover {
+            background-color: #5a6268;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        th { background-color: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>API Documentation</h1>
+            <p>Welcome to the Parksons Stock Tracker API. This document provides all the information you need to interact with the API.</p>
+            <a href="/" class="nav-link">Back to Home UI</a>
+        </header>
+
+        <section id="overview">
+            <h2>Overview</h2>
+            <p>This API allows you to manage products and track stock movements in a warehouse. It provides endpoints for creating products, recording stock-in/stock-out transactions, and checking current inventory levels.</p>
+            <p><strong>Base URL:</strong> <code>https://kothasaikrishnas-parksons-internship.onrender.com</code></p>
+        </section>
+
+        <section id="endpoints">
+            <h2>API Endpoints</h2>
+
+            <div class="endpoint">
+                <h3>Products</h3>
+                <p><span class="method get">GET</span> <span class="path"><a href="/api/products/" target="_blank">/api/products/</a></span></p>
+                <p>Retrieves a list of all products in the master list.</p>
+                <hr>
+                <p><span class="method post">POST</span> <span class="path"><a href="/api/products/" target="_blank">/api/products/</a></span></p>
+                <p>Creates a new product. The GTIN must be unique.</p>
+                <h4>Request Body:</h4>
+                <pre><code>{
+    "gtin": "8901234567890",
+    "product_name": "Premium Quality Paper",
+    "description": "A4 size, 90 GSM paper ream."
+}</code></pre>
+                <h4>Example Request (curl):</h4>
+                <pre><code>curl -X POST https://kothasaikrishnas-parksons-internship.onrender.com/api/products/ \
+-H "Content-Type: application/json" \
+-d '{
+    "gtin": "8901234567890",
+    "product_name": "Premium Quality Paper",
+    "description": "A4 size, 90 GSM paper ream."
+}'</code></pre>
+                <h4>Example Success Response (201 Created):</h4>
+                <pre><code>{
+    "id": 1,
+    "gtin": "8901234567890",
+    "product_name": "Premium Quality Paper",
+    "description": "A4 size, 90 GSM paper ream."
+}</code></pre>
+            </div>
+
+            <div class="endpoint">
+                <h3>Record Stock In</h3>
+                <p><span class="method post">POST</span> <span class="path"><a href="/api/stock/in/" target="_blank">/api/stock/in/</a></span></p>
+                <p>Records an incoming stock transaction for one or more products.</p>
+                <h4>Request Body:</h4>
+                <pre><code>{
+    "items": [
+        {
+            "product_gtin": "8901234567890",
+            "quantity": 100
+        }
+    ]
+}</code></pre>
+                <h4>Example Success Response (201 Created):</h4>
+                <pre><code>{
+    "message": "Transaction successful",
+    "transaction_id": 1
+}</code></pre>
+            </div>
+
+            <div class="endpoint">
+                <h3>Record Stock Out</h3>
+                <p><span class="method post">POST</span> <span class="path"><a href="/api/stock/out/" target="_blank">/api/stock/out/</a></span></p>
+                <p>Records an outgoing stock transaction. The API will validate if there is enough stock available.</p>
+                <h4>Request Body:</h4>
+                <pre><code>{
+    "items": [
+        {
+            "product_gtin": "8901234567890",
+            "quantity": 10
+        }
+    ]
+}</code></pre>
+                <h4>Example Error Response (400 Bad Request):</h4>
+                <pre><code>{
+    "error": "Not enough stock for 'Premium Quality Paper' (GTIN: 8901234567890). Available: 5, Requested: 10"
+}</code></pre>
+            </div>
+
+            <div class="endpoint">
+                <h3>Get Stock Level</h3>
+                <p><span class="method get">GET</span> <span class="path">/api/stock/level/{gtin}/</span></p>
+                <p>Retrieves the current calculated stock level for a single product using its GTIN.</p>
+                <h4>Example Request (curl):</h4>
+                <pre><code>curl https://kothasaikrishnas-parksons-internship.onrender.com/api/stock/level/8901234567890/</code></pre>
+                <h4>Example Success Response (200 OK):</h4>
+                <pre><code>{
+    "product_gtin": "8901234567890",
+    "product_name": "Premium Quality Paper",
+    "quantity": 90
+}</code></pre>
+            </div>
+        </section>
+    </div>
+</body>
+</html> 
