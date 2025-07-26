@@ -21,9 +21,9 @@ def documentation_view(request):
     return render(request, 'documentation.html')
 
 def health_view(request):
+    """Links to UptimeRobot and keep the site alive."""
     return render(request, 'health.html')
 
-# --- Product Views ---
 class ProductListCreateView(generics.ListCreateAPIView):
     """
     View to list all products or create a new one.
@@ -33,8 +33,8 @@ class ProductListCreateView(generics.ListCreateAPIView):
     queryset = ProductMast.objects.all()
     serializer_class = ProductSerializer
 
-# --- Helper function to get stock ---
 def get_product_stock(gtin):
+    """Helper function to get stock"""
     stock_in = StckDetail.objects.filter(
         product__gtin=gtin, transaction__transaction_type='IN'
     ).aggregate(total=Sum('quantity'))['total'] or 0
@@ -42,15 +42,13 @@ def get_product_stock(gtin):
     stock_out = StckDetail.objects.filter(
         product__gtin=gtin, transaction__transaction_type='OUT'
     ).aggregate(total=Sum('quantity'))['total'] or 0
-    
     return stock_in - stock_out
 
-# --- Stock Transaction Views ---
 class StockTransactionView(APIView):
     """
     Base class for handling stock transactions.
     """
-    transaction_type = None # Must be 'IN' or 'OUT'
+    transaction_type = None
 
     def post(self, request, *args, **kwargs):
         serializer = StockTransactionSerializer(data=request.data)
@@ -60,36 +58,30 @@ class StockTransactionView(APIView):
         items = serializer.validated_data['items']
         
         try:
-            # This is the key: wrap all database operations in transaction.atomic()
             with transaction.atomic():
-                malin_record = StckMain.objects.create(transaction_type=self.transaction_type)
+                main_record = StckMain.objects.create(transaction_type=self.transaction_type)
                 
                 for item in items:
                     gtin = item['product_gtin']
-                    quantity = item['quantity']
-                    
-                    # Using select_for_update() locks the row to prevent race conditions
+                    quantity = item['quantity']                    
                     product = ProductMast.objects.select_for_update().filter(gtin=gtin).first()
                     if not product:
-                        # Raising an exception inside the atomic block triggers a rollback
                         raise ValueError(f"Product with GTIN {gtin} not found.")
 
                     if self.transaction_type == 'OUT':
                         current_stock = get_product_stock(gtin)
                         if current_stock < quantity:
-                            # More descriptive error message!
                             raise ValueError(f"Not enough stock for '{product.product_name}' (GTIN: {gtin}). Available: {current_stock}, Requested: {quantity}")
                     
                     StckDetail.objects.create(
-                        transaction=malin_record,
+                        transaction=main_record,
                         product=product,
                         quantity=quantity
                     )
             
-            return Response({"message": "Transaction successful", "transaction_id": malin_record.id}, status=status.HTTP_201_CREATED)
+            return Response({"message": "Transaction successful", "transaction_id": main_record.id}, status=status.HTTP_201_CREATED)
         
         except ValueError as e:
-            # The custom, user-friendly error message will be returned
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -101,7 +93,6 @@ class StockOutView(StockTransactionView):
     """ Handle Stock OUT. POST: /api/stock/out/ """
     transaction_type = 'OUT'
 
-# --- Stock Level View ---
 class StockLevelView(APIView):
     """
     Check current stock level for a product.
@@ -119,5 +110,5 @@ class StockLevelView(APIView):
             'product_name': product.product_name,
             'quantity': current_stock
         })
-        serializer.is_valid() # It will always be valid
+        serializer.is_valid()
         return Response(serializer.data, status=status.HTTP_200_OK)

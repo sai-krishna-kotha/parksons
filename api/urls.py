@@ -9,10 +9,8 @@ from .views import (
 )
 
 urlpatterns = [
-    # Path for the new UI
     path('docs/', documentation_view, name='api-documentation'),
     path('health/', health_view, name="site-health"),
-    # Existing API paths
     path('products/', ProductListCreateView.as_view(), name='product-list-create'),
     path('stock/in/', StockInView.as_view(), name='stock-in'),
     path('stock/out/', StockOutView.as_view(), name='stock-out'),
