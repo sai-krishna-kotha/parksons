@@ -28,17 +28,19 @@
             background-color: #f9f9f9;
         }
 
+        /* UPDATED: Styles for form elements to ensure proper alignment */
         input,
         textarea,
         button {
             display: block;
-            width: 95%;
+            width: 100%;
             padding: 10px;
             margin-bottom: 10px;
             border-radius: 4px;
             border: 1px solid #ccc;
             font-size: 16px;
             font-family: inherit;
+            box-sizing: border-box;
         }
 
         textarea {
@@ -90,7 +92,6 @@
             word-wrap: break-word;
         }
 
-        /* UPDATED: Styling for the API Docs as a text link */
         .docs-link {
             color: #007bff;
             text-decoration: none;
