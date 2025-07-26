@@ -15,6 +15,20 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductMast
         fields = ['id', 'gtin', 'product_name', 'description']
+    def validate_gtin(self, value):
+        """
+        Check that the GTIN has a valid length of 8, 12, 13, or 14 digits.
+        """
+        # A set is used for slightly faster lookups.
+        valid_lengths = {8, 12, 13, 14}
+        if len(value) not in valid_lengths:
+            raise serializers.ValidationError("Invalid GTIN. Length must be 8, 12, 13, or 14 digits.")
+        
+        # Also ensure the GTIN contains only digits.
+        if not value.isdigit():
+            raise serializers.ValidationError("Invalid GTIN. Must contain only numbers.")
+            
+        return value
 
 # For representing one item in a transaction request
 class StockTransactionItemSerializer(serializers.Serializer):

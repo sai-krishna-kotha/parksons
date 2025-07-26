@@ -129,21 +129,21 @@
 
     <form id="stock-level-form">
         <h3>Check Stock Level</h3>
-        <input type="text" id="gtin-check" placeholder="Enter Product GTIN" required>
+        <input type="number" id="gtin-check" placeholder="Enter Product GTIN" required>
         <button type="submit">Check Stock</button>
     </form>
 
     <div class="form-grid">
         <form id="stock-in-form">
             <h3>Record Stock In</h3>
-            <input type="text" id="gtin-in" placeholder="Product GTIN" required>
+            <input type="number" id="gtin-in" placeholder="Product GTIN" required>
             <input type="number" id="qty-in" placeholder="Quantity" min="1" required>
             <button type="submit">Stock In</button>
         </form>
 
         <form id="stock-out-form">
             <h3>Record Stock Out</h3>
-            <input type="text" id="gtin-out" placeholder="Product GTIN" required>
+            <input type="number" id="gtin-out" placeholder="Product GTIN" required>
             <input type="number" id="qty-out" placeholder="Quantity" min="1" required>
             <button type="submit">Stock Out</button>
         </form>
@@ -151,7 +151,7 @@
 
     <form id="create-product-form">
         <h3>Create New Product</h3>
-        <input type="text" id="gtin-create" placeholder="Product GTIN" required>
+        <input type="number" id="gtin-create" placeholder="Product GTIN" required>
         <input type="text" id="name-create" placeholder="Product Name" required>
         <textarea id="desc-create" placeholder="Description (Optional)"></textarea>
         <button type="submit">Create Product</button>
@@ -189,10 +189,10 @@
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    showResult(`✅ Product '${data.product_name}' created successfully!`, false);
+                    showResult(`Product '${data.product_name}' created successfully!`, false);
                 } else {
                     // Handles validation errors like non-unique GTIN
-                    showResult(`❌ Error: ${JSON.stringify(data)}`, true);
+                    showResult(`Error: ${JSON.stringify(data)}`, true);
                 }
             } catch (error) {
                 showResult('Network or server error.', true);
@@ -214,9 +214,9 @@
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    showResult(`✅ Transaction ${data.transaction_id} successful.`, false);
+                    showResult(`Transaction ${data.transaction_id} successful.`, false);
                 } else {
-                    showResult(`❌ Error: ${data.error || JSON.stringify(data)}`, true);
+                    showResult(`Error: ${data.error || JSON.stringify(data)}`, true);
                 }
             } catch (error) {
                 showResult('Network or server error.', true);
@@ -238,9 +238,9 @@
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    showResult(`✅ Transaction ${data.transaction_id} successful.`, false);
+                    showResult(`Transaction ${data.transaction_id} successful.`, false);
                 } else {
-                    showResult(`❌ Error: ${data.error || JSON.stringify(data)}`, true);
+                    showResult(`Error: ${data.error || JSON.stringify(data)}`, true);
                 }
             } catch (error) {
                 showResult('Network or server error.', true);
@@ -256,9 +256,9 @@
                 const response = await fetch(`/api/stock/level/${gtin}/`);
                 const data = await response.json();
                 if (response.ok) {
-                    showResult(`✅ Stock for '${data.product_name}': ${data.quantity}`, false);
+                    showResult(`Stock for '${data.product_name}': ${data.quantity}`, false);
                 } else {
-                    showResult(`❌ Error: ${data.error || 'Unknown error'}`, true);
+                    showResult(`Error: ${data.error || 'Unknown error'}`, true);
                 }
             } catch (error) {
                 showResult('Network or server error.', true);

@@ -2,3 +2,5 @@ venv/
 __pycache__/
 */__pycache__/
 *.pyc
+# db file added to gitignore file so that local db entries won't be applied to remote db file
+db.sqlite3
