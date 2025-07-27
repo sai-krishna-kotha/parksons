@@ -131,6 +131,7 @@
 
     <div class="form-grid">
         <form id="stock-in-form">
+            {% csrf_token %}
             <h3>Record Stock In</h3>
             <input type="number" id="gtin-in" placeholder="Product GTIN" required>
             <input type="number" id="qty-in" placeholder="Quantity" min="1" required>
@@ -138,6 +139,7 @@
         </form>
 
         <form id="stock-out-form">
+            {% csrf_token %}
             <h3>Record Stock Out</h3>
             <input type="number" id="gtin-out" placeholder="Product GTIN" required>
             <input type="number" id="qty-out" placeholder="Quantity" min="1" required>
@@ -146,6 +148,7 @@
     </div>
 
     <form id="create-product-form">
+        {% csrf_token %} 
         <h3>Create New Product</h3>
         <input type="number" id="gtin-create" placeholder="Product GTIN" required>
         <input type="text" id="name-create" placeholder="Product Name" required>
@@ -154,6 +157,7 @@
     </form>
     <script>
         const resultDiv = document.getElementById('result');
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
         // Helper function to display results
         function showResult(message, isError) {
@@ -179,14 +183,16 @@
             try {
                 const response = await fetch('/api/products/', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
                     body: JSON.stringify({ gtin, product_name, description })
                 });
                 const data = await response.json();
                 if (response.ok) {
                     showResult(`Product '${data.product_name}' created successfully!`, false);
                 } else {
-                    // Handles validation errors like non-unique GTIN
                     showResult(`Error: ${JSON.stringify(data)}`, true);
                 }
             } catch (error) {
@@ -204,7 +210,10 @@
             try {
                 const response = await fetch('/api/stock/in/', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
                     body: JSON.stringify({ items: [{ product_gtin: gtin, quantity }] })
                 });
                 const data = await response.json();
@@ -228,7 +237,10 @@
             try {
                 const response = await fetch('/api/stock/out/', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
                     body: JSON.stringify({ items: [{ product_gtin: gtin, quantity }] })
                 });
                 const data = await response.json();
